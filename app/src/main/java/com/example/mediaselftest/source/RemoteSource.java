@@ -30,7 +30,6 @@ public class RemoteSource implements MusicProviderSource{
     private static final String JSON_TOTAL_TRACK_COUNT = "totalTrackCount";
     private static final String JSON_DURATION = "duration";
 
-
     @Override
     public Iterator<MediaMetadataCompat> iterator(String mediaId) {
         try {

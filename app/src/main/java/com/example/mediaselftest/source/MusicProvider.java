@@ -13,8 +13,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.security.auth.callback.Callback;
-
 import timber.log.Timber;
 
 import static com.example.mediaselftest.utils.MediaIDHelper.MEDIA_ID_TRACKS_ALL;
