@@ -130,6 +130,16 @@ public class MusicProvider {
 
     }
 
+    public MediaMetadataCompat getMusic(String musicId) {
+        for (MediaMetadataCompat metadataCompat : musicList) {
+            if (musicId.equals(metadataCompat.getDescription().getMediaId())) {
+                return metadataCompat;
+            }
+        }
+        return null;
+    }
+
+
     public interface Callback {
         void onMusicCatalogReady(boolean success);
     }

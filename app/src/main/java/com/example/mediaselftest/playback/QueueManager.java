@@ -38,6 +38,16 @@ public class QueueManager {
         return Arrays.equals(newBrowseHierarchy, currentBrowseHierarchy);
     }
 
+    protected void setCurrentQueue(List<MediaSessionCompat.QueueItem> newQueue,
+                                   String initialMediaId) {
+        playingQueue = newQueue;
+        int index = 0;
+        if (initialMediaId != null) {
+            index = QueueHelper.getMusicIndexOnQueue(playingQueue, initialMediaId);
+        }
+        currentIndex = Math.max(index, 0);
+        metadataUpdateListener.onQueueUpdated(newQueue);
+    }
 
     private void setCurrentQueueIndex(int index) {
         if (index >= 0 && index < playingQueue.size()) {
@@ -84,12 +94,44 @@ public class QueueManager {
     }
 
 
-
+    public void setQueueFromMusic(String mediaId) {
+        // The mediaId used here is not the unique musicId. This one comes from the
+        // MediaBrowser, and is actually a "hierarchy-aware mediaID": a concatenation of
+        // the hierarchy in MediaBrowser and the actual unique musicID. This is necessary
+        // so we can build the correct playing queue, based on where the track was
+        // selected from.
+        boolean canReuseQueue = false;
+        if (isSameBrowingCategory(mediaId)) {
+            canReuseQueue = setCurrentQueueItem(mediaId);
+        }
+        if (!canReuseQueue) {
+            setCurrentQueue(QueueHelper.getPlayingQueue(mediaId, musicProvider), mediaId);
+        }
+        updateMetadata();
+    }
 
     public interface MetadataUpdateListener{
         void onMetadataChanged(MediaMetadataCompat metadata);
         void onMetadataRetrieveError();
         void onCurrentQueueIndexUpdated(int queueIndex);
         void onQueueUpdated(List<MediaSessionCompat.QueueItem> newQueue);
+    }
+
+    public void updateMetadata() {
+        MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
+        if (currentMusic == null || currentMusic.getDescription() == null
+                || currentMusic.getDescription().getMediaId() == null) {
+            metadataUpdateListener.onMetadataRetrieveError();
+            return;
+        }
+        final String musicId = MediaIDHelper.extractMusicIDFromMediaID(currentMusic.getDescription().getMediaId());
+
+
+        MediaMetadataCompat metadata = musicProvider.getMusic(musicId);
+        if (metadata == null) {
+            throw new IllegalArgumentException("Invalid musicId " + musicId);
+        }
+
+        metadataUpdateListener.onMetadataChanged(metadata);
     }
 }
